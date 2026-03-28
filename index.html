@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f8f0e3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Personality">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Personality Profile</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background: linear-gradient(180deg, #f5e6c8 0%, #f0e4d4 15%, #e8e4ea 30%, #dce6f0 50%, #e0e8f2 70%, #d8e2ee 100%);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Sparkle/Snow particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      animation: float linear infinite;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(100vh) translateX(30px) scale(0.3);
+        opacity: 0;
+      }
+    }
+
+    /* Golden glow top-left */
+    .glow-tl {
+      position: fixed;
+      top: -60px;
+      left: -60px;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(255, 200, 80, 0.35) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #333;
+      font-size: 18px;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-icon:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-pill {
+      height: 40px;
+      padding: 0 20px;
+      border-radius: 20px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-pill:active {
+      transform: scale(0.95);
+    }
+
+    .btn-save {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #333;
+    }
+
+    .btn-share {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    /* Content */
+    .content {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 100px;
+    }
+
+    /* Card */
+    .card {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow:
+        0 2px 20px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #2a2a3a;
+      margin-bottom: 20px;
+    }
+
+    /* Trait row */
+    .trait {
+      display: flex;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .trait:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .trait-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #3a3a4a;
+      min-width: 110px;
+      flex-shrink: 0;
+    }
+
+    .trait-bar-wrap {
+      flex: 1;
+      height: 14px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 7px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+
+    .trait-bar {
+      height: 100%;
+      border-radius: 7px;
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 0;
+    }
+
+    .trait-value {
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Bar colors */
+    .bar-extraversion {
+      background: linear-gradient(90deg, #ff8a3d, #ff6b2b);
+    }
+    .bar-conscientiousness {
+      background: linear-gradient(90deg, #4dd66a, #2db84e);
+    }
+    .bar-agreeableness {
+      background: linear-gradient(90deg, #5ee87a, #38c958);
+    }
+    .bar-openness {
+      background: linear-gradient(90deg, #3d8bff, #50d4e0);
+    }
+    .bar-emotional {
+      background: linear-gradient(90deg, #ff5e3a, #ff8a5c);
+    }
+    .bar-curiosity {
+      background: linear-gradient(90deg, #e84580, #f06090);
+    }
+
+    /* Value colors */
+    .val-orange { color: #e67a2e; }
+    .val-green  { color: #2db84e; }
+    .val-blue   { color: #3d8bff; }
+    .val-red    { color: #e8563a; }
+    .val-pink   { color: #d84070; }
+
+    /* Radar chart */
+    .radar-wrap {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .radar-canvas {
+      width: 260px;
+      height: 260px;
+    }
+
+    /* Bottom input */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(220, 225, 235, 0.95) 0%, rgba(220, 225, 235, 0) 100%);
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 24px;
+      padding: 4px 6px 4px 14px;
+      max-width: 400px;
+      margin: 0 auto;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .input-icon-left {
+      color: #888;
+      font-size: 18px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .input-field {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      color: #333;
+      outline: none;
+      padding: 10px 0;
+    }
+
+    .input-field::placeholder {
+      color: #aaa;
+    }
+
+    .input-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.06);
+      color: #888;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+
+    .input-btn:active {
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    /* Animations */
+    .card {
+      animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    @keyframes cardIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background effects -->
+  <div class="glow-tl"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <button class="btn-icon" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/>
+        </svg>
+      </button>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" aria-label="Info">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="9" cy="9" r="7.5"/><line x1="9" y1="8" x2="9" y2="13"/><circle cx="9" cy="5.5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+      <button class="btn-pill btn-save">Save</button>
+      <button class="btn-pill btn-share">Share</button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="content">
+    <div class="card">
+      <h1 class="card-title">Personality Profile</h1>
+
+      <div class="trait">
+        <span class="trait-label">Extraversion:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-extraversion" data-width="58"></div></div>
+        <span class="trait-value val-orange">Moderate</span>
+      </div>
+
+      <div class="trait">
+        <span class="trait-label">Conscientiousness:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-conscientiousness" data-width="75"></div></div>
+        <span class="trait-value val-green">High</span>
+      </div>
+
+      <div class="trait">
+        <span class="trait-label">Agreeableness:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-agreeableness" data-width="85"></div></div>
+        <span class="trait-value val-green">Very High</span>
+      </div>
+
+      <div class="trait">
+        <span class="trait-label">Openness:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-openness" data-width="55"></div></div>
+        <span class="trait-value val-blue">Moderate</span>
+      </div>
+
+      <div class="trait">
+        <span class="trait-label">Emotional Stability:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-emotional" data-width="30"></div></div>
+        <span class="trait-value val-red">Low</span>
+      </div>
+
+      <div class="trait">
+        <span class="trait-label">Curiosity:</span>
+        <div class="trait-bar-wrap"><div class="trait-bar bar-curiosity" data-width="72"></div></div>
+        <span class="trait-value val-pink">High</span>
+      </div>
+
+      <!-- Radar Chart -->
+      <div class="radar-wrap">
+        <canvas class="radar-canvas" id="radarCanvas" width="520" height="520"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom input -->
+  <div class="bottom-bar">
+    <div class="input-wrap">
+      <span class="input-icon-left">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="7" cy="7" r="4"/><line x1="12" y1="7" x2="18" y2="7"/><line x1="15" y1="4" x2="15" y2="10"/>
+          <circle cx="7" cy="15" r="4"/><line x1="12" y1="15" x2="18" y2="15"/>
+        </svg>
+      </span>
+      <input class="input-field" type="text" placeholder="Describe edits">
+      <button class="input-btn" aria-label="Voice">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <rect x="5.5" y="1" width="5" height="9" rx="2.5"/><path d="M3 7.5a5 5 0 0 0 10 0"/><line x1="8" y1="12.5" x2="8" y2="15"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Particle system
+    (function() {
+      const container = document.getElementById('particles');
+      const count = 30;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 4 + 2;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.top = Math.random() * 100 + '%';
+        p.style.animationDuration = (Math.random() * 8 + 6) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        p.style.opacity = Math.random() * 0.5 + 0.3;
+        container.appendChild(p);
+      }
+    })();
+
+    // Animate bars on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        document.querySelectorAll('.trait-bar').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }, 300);
+    });
+
+    // Radar chart
+    (function() {
+      const canvas = document.getElementById('radarCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      const cx = W / 2;
+      const cy = H / 2;
+      const R = 200;
+
+      const labels = ['Extraversion', 'Conscientiousness', 'Agreeableness', 'Openness', 'Emotional\nStability', 'Curiosity'];
+      const values = [0.58, 0.75, 0.85, 0.55, 0.30, 0.72];
+      const n = labels.length;
+      const angleStep = (Math.PI * 2) / n;
+      const startAngle = -Math.PI / 2;
+
+      function getPoint(i, r) {
+        const a = startAngle + angleStep * i;
+        return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+      }
+
+      // Grid lines
+      const gridLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 1;
+      gridLevels.forEach(level => {
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) {
+          const p = getPoint(i % n, R * level);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      });
+
+      // Axis lines
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      for (let i = 0; i < n; i++) {
+        const p = getPoint(i, R);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+
+      // Rainbow gradient fill for data polygon
+      const colors = [
+        { r: 255, g: 140, b: 50 },   // Extraversion - orange
+        { r: 80, g: 210, b: 100 },    // Conscientiousness - green
+        { r: 100, g: 230, b: 120 },   // Agreeableness - green
+        { r: 60, g: 140, b: 255 },    // Openness - blue
+        { r: 180, g: 100, b: 220 },   // Emotional Stability - purple
+        { r: 230, g: 70, b: 130 },    // Curiosity - pink
+      ];
+
+      // Draw filled polygon with gradient segments
+      const dataPoints = values.map((v, i) => getPoint(i, R * v));
+
+      // Create a radial rainbow fill
+      for (let i = 0; i < n; i++) {
+        const i2 = (i + 1) % n;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(dataPoints[i].x, dataPoints[i].y);
+        ctx.lineTo(dataPoints[i2].x, dataPoints[i2].y);
+        ctx.closePath();
+
+        const c1 = colors[i];
+        const c2 = colors[i2];
+        const midX = (dataPoints[i].x + dataPoints[i2].x) / 2;
+        const midY = (dataPoints[i].y + dataPoints[i2].y) / 2;
+
+        const grad = ctx.createLinearGradient(dataPoints[i].x, dataPoints[i].y, dataPoints[i2].x, dataPoints[i2].y);
+        grad.addColorStop(0, `rgba(${c1.r},${c1.g},${c1.b},0.45)`);
+        grad.addColorStop(1, `rgba(${c2.r},${c2.g},${c2.b},0.45)`);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // Stroke outline
+      ctx.beginPath();
+      dataPoints.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.closePath();
+      ctx.lineWidth = 2.5;
+
+      // Create gradient for stroke
+      for (let i = 0; i < n; i++) {
+        const i2 = (i + 1) % n;
+        ctx.beginPath();
+        ctx.moveTo(dataPoints[i].x, dataPoints[i].y);
+        ctx.lineTo(dataPoints[i2].x, dataPoints[i2].y);
+        const c1 = colors[i];
+        const c2 = colors[i2];
+        const grad = ctx.createLinearGradient(dataPoints[i].x, dataPoints[i].y, dataPoints[i2].x, dataPoints[i2].y);
+        grad.addColorStop(0, `rgba(${c1.r},${c1.g},${c1.b},0.8)`);
+        grad.addColorStop(1, `rgba(${c2.r},${c2.g},${c2.b},0.8)`);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // Data points (dots)
+      dataPoints.forEach((p, i) => {
+        const c = colors[i];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+      });
+    })();
+
+    // PWA Service Worker registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
