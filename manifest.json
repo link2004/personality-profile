@@ -1,11 +1,11 @@
 {
-  "name": "Personality Profile",
-  "short_name": "Personality",
+  "name": "YouLet - Personality Profile",
+  "short_name": "YouLet",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f0e4d4",
-  "theme_color": "#f8f0e3",
-  "description": "Your personality profile at a glance",
+  "background_color": "#080c08",
+  "theme_color": "#0a0f0a",
+  "description": "Your personality profile powered by YouLet",
   "icons": [
     {
       "src": "icon-192.png",
